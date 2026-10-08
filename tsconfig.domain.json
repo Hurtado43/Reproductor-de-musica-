@@ -1,0 +1,13 @@
+{
+  // Comprueba que el dominio compile sin DOM, sin JSX y sin tipos de React/Next.
+  // Solo se permiten los tipos de Node (que incluyen globales universales como crypto).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "jsx": "preserve",
+    "plugins": [],
+    "incremental": false
+  },
+  "include": ["src/domain"]
+}

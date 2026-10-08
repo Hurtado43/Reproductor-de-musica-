@@ -1,0 +1,15 @@
+# dependencias
+node_modules
+
+# Next.js
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+
+# compilaciones antiguas de Vite
+dist
+
+# registros y entorno
+*.log
+.env*.local
