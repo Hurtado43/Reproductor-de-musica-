@@ -1,0 +1,1174 @@
+/* ---------- Estructura ---------- */
+
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+}
+
+/* Contenedor principal: escritorio = playlist (28 %) a la izquierda + área principal. */
+.shell {
+  width: 100%;
+  max-width: 1180px;
+  height: min(760px, calc(100dvh - 2 * var(--gutter)));
+  min-height: 560px;
+  display: grid;
+  grid-template-columns: minmax(260px, var(--sidebar-width)) minmax(0, 1fr);
+  grid-template-areas: 'playlist stage';
+  border-radius: var(--radius-shell);
+  border: 1px solid var(--color-shell-border);
+  overflow: hidden;
+  background: var(--color-main);
+  box-shadow: var(--shadow-shell);
+}
+
+/*
+ * Dos filas: título de la app y una columna centrada con la esfera y los
+ * detalles, alineadas arriba. Un título largo crece hacia abajo: no mueve ni
+ * reduce la esfera; si no cabe, el área principal se desplaza.
+ */
+.stage {
+  grid-area: stage;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-7);
+  background: var(--color-main);
+  overflow-y: auto;
+  /* Reserva siempre el espacio de la barra: si un título largo la hace
+     aparecer, la columna (y la esfera) no se desplaza horizontalmente. */
+  scrollbar-gutter: stable both-edges;
+}
+
+.appTitle {
+  justify-self: start;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+}
+
+/*
+ * Columna centrada: esfera, detalles y navegación comparten el mismo ancho y
+ * borde izquierdo. El texto queda alineado a la izquierda dentro de ella.
+ */
+.stageColumn {
+  justify-self: center;
+  width: min(100%, var(--stage-column-width));
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: var(--space-4);
+}
+
+/* ---------- Esfera 3D (fase 2B) ---------- */
+
+.visualizerArea {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+}
+
+/*
+ * Cuadrado cuyo tamaño depende solo del viewport (--visualizer-size), nunca
+ * del título o del artista. Mientras carga la escena muestra un borde tenue y
+ * "Cargando…" del mismo tamaño, para que no haya saltos.
+ */
+.visualizerSlot {
+  position: relative;
+  width: min(100%, var(--visualizer-size));
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: end center;
+  padding: var(--space-3);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.4s;
+}
+
+/* Escena lista: sin borde ni texto del marcador. */
+.visualizerReady {
+  border-color: transparent;
+}
+
+.visualizerCanvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.visualizerLabel {
+  position: relative;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  text-align: center;
+}
+
+.visualizerFallback {
+  place-self: center;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: 18rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.visualizerFallback p {
+  margin: 0;
+}
+
+/* ---------- Canción seleccionada ---------- */
+
+.selected {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* Alto mínimo (no máximo) para un título de una línea, artista y datos. Un
+     título más largo se muestra completo y solo alarga la columna hacia abajo. */
+  min-height: 7.5rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* Títulos largos (fase 4B): caja de 2 líneas (3 con pantallas altas). Si el
+   título no cabe, la caja se desplaza (rueda, tacto o teclado al recibir foco)
+   y un degradado inferior indica que hay más texto. No hay marquesinas. */
+.selectedTitleBox {
+  --title-lines: 2;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  /* + relleno del título: los acentos y descendentes no cuentan como desbordamiento. */
+  max-height: calc(var(--title-lines) * 1.15em + 0.3em);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border-radius: var(--radius-sm);
+}
+
+.selectedTitleBox[data-overflowing='true'] {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 0.6em), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 0.6em), transparent);
+}
+
+.selectedTitleBox:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+@media (min-height: 900px) {
+  .selectedTitleBox {
+    --title-lines: 3;
+  }
+}
+
+/* Escritorio con poca altura (por ejemplo, 1366×800): menos separación entre el
+   encabezado y la columna para que un título de 2 líneas quepa con los
+   controles a la vista. No cambia el tamaño de la esfera. */
+@media (min-width: 768px) and (max-height: 860px) {
+  .stage {
+    row-gap: var(--space-4);
+  }
+}
+
+.selectedTitle {
+  margin: 0;
+  padding-block: 0.15em;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.selectedArtist {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.unknownArtist {
+  font-style: italic;
+}
+
+.selectedMeta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.selectedEmpty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Controles de reproducción (fase 3A) ---------- */
+
+.controls {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Estado + repetición en una sola línea (fase 4B): no añade altura a la columna. */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.modeButtons {
+  flex: none;
+  display: flex;
+  gap: var(--space-1);
+  /* El área táctil de 44 px ocupa la separación (8 px) que ya existe arriba y
+     abajo de la línea de estado: no añade altura a la columna ni se solapa con
+     la barra de progreso. */
+  margin-block: calc(-1 * var(--space-2));
+}
+
+/* Aleatorio y repetición (fase 5): área de 44×44 px con icono de 18 px.
+   Inactivo: gris y sin fondo. Activo: rojo, con fondo y borde (además de
+   aria-pressed en aleatorio y el nombre del modo en repetición). */
+.modeButton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.modeButton:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+
+.modeButton[data-active='true'] {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-muted);
+}
+
+.modeButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.modeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.playbackStatus {
+  min-width: 0;
+  margin: 0;
+  min-height: 1.4em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.controls[data-status='playing'] .playbackStatus {
+  color: var(--color-accent);
+}
+
+.playbackStatusError {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.progress {
+  display: grid;
+  gap: 2px;
+}
+
+.times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Barras (progreso y volumen): <input type="range"> nativo con pista dibujada.
+ * La zona táctil mide 24 px de alto aunque la pista se vea de 6 px.
+ * `--progress` (porcentaje) pinta la parte recorrida.
+ */
+.seek,
+.volumeRange {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.seek:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.seek::-webkit-slider-runnable-track,
+.volumeRange::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    to right,
+    var(--color-accent) var(--progress, 0%),
+    var(--color-track) var(--progress, 0%)
+  );
+}
+
+.seek::-moz-range-track,
+.volumeRange::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-track);
+}
+
+.seek::-moz-range-progress,
+.volumeRange::-moz-range-progress {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.seek::-webkit-slider-thumb,
+.volumeRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 2px solid var(--color-sidebar);
+  border-radius: 50%;
+  background: var(--color-text);
+}
+
+.seek::-moz-range-thumb,
+.volumeRange::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-sidebar);
+  border-radius: 50%;
+  background: var(--color-text);
+}
+
+.page .seek:focus-visible,
+.page .volumeRange:focus-visible {
+  box-shadow: none;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.roundButton,
+.playButton {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.roundButton {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.roundButton:hover:not([aria-disabled='true']) {
+  border-color: var(--color-accent-muted);
+  background: var(--color-surface-raised);
+}
+
+.roundButton[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.playButton {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.playButton:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+}
+
+.playButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1 1 8rem;
+  max-width: 11rem;
+  min-width: 0;
+}
+
+/* ---------- Playlist lateral ---------- */
+
+.panel {
+  grid-area: playlist;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-sidebar);
+  border-right: 1px solid var(--color-line);
+}
+
+.panelHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.panelHeading {
+  min-width: 0;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.panelTitle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+.panelStats {
+  margin: var(--space-1) 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Acciones, búsqueda y vaciado de la playlist (fase 4B). */
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.panelActions .primaryButton {
+  flex: 1 1 auto;
+}
+
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.textButton:hover:not(:disabled) {
+  color: var(--color-danger);
+}
+
+.textButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.textButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) 2.5rem var(--space-2) 2.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-input);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-subtle);
+}
+
+/* El botón propio limpia la búsqueda: se oculta el del navegador. */
+.searchInput::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.searchInput:focus-visible {
+  outline: none;
+  border-color: var(--color-accent-muted);
+  box-shadow: var(--focus-ring);
+}
+
+.searchClear {
+  position: absolute;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.searchClear:hover {
+  color: var(--color-text);
+}
+
+.searchClear:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.searchStatus {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.searchStatus:empty {
+  margin-top: calc(-1 * var(--space-4));
+}
+
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dangerButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.confirmDialog {
+  width: min(100%, 26rem);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.confirmText p {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+}
+
+/* Persistencia (fase 4A): una línea reservada bajo el resumen de la playlist.
+   Está en el panel lateral (debajo del área principal en móvil): no desplaza la
+   esfera ni tapa los controles de reproducción. */
+.persistence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-height: 1.25rem;
+  margin-top: var(--space-1);
+}
+
+.persistenceText {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+.persistenceError {
+  color: var(--color-danger);
+}
+
+.persistenceRetry {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.persistenceRetry:hover {
+  border-color: var(--color-accent-muted);
+}
+
+.persistenceRetry:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.restoreReport {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--color-text);
+}
+
+.restoreReport ul {
+  margin: var(--space-1) 0 var(--space-2);
+  padding-left: 1.1rem;
+}
+
+.restoreReportTitle {
+  margin: 0;
+  font-weight: 600;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+.songList {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.songRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-right: var(--space-3);
+  transition: background-color 0.15s;
+}
+
+.songRow:hover {
+  background: var(--color-sidebar-hover);
+}
+
+/* Selección: fondo + acento lateral. */
+.songRowCurrent,
+.songRowCurrent:hover {
+  background: var(--color-selected);
+}
+
+.songRowCurrent::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  background: var(--color-accent);
+}
+
+.songSelect {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-5);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.songPosition {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.songRowCurrent .songPosition {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.songText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título: hasta 2 líneas; el texto completo está en `title` y en el nombre accesible. */
+.songTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.songArtist {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.songDuration {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.songRemove {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.songRemove:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+/* ---------- Botones ---------- */
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.primaryButton {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.primaryButton:hover {
+  background: var(--color-accent-strong);
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-line);
+  background: transparent;
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-accent-muted);
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--color-surface-raised);
+}
+
+/* Foco visible para todos los controles. */
+.page :is(button, input, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.page .songSelect:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+/* ---------- Diálogo ---------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background: var(--color-backdrop);
+}
+
+.dialog {
+  width: min(100%, 32rem);
+  max-height: calc(100dvh - 2 * var(--gutter));
+  overflow-y: auto;
+  padding: var(--space-5);
+  border: 1px solid var(--color-shell-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field label,
+.fieldset legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-input);
+}
+
+.field input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.field input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+/* Selector de archivo nativo (accesible por teclado) con el botón del sistema estilizado. */
+.field .fileInput {
+  padding: var(--space-2);
+  cursor: pointer;
+}
+
+.fileInput::file-selector-button {
+  margin-right: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent-muted);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fileInput:hover::file-selector-button {
+  border-color: var(--color-accent);
+}
+
+.fileInfo:empty {
+  display: none;
+}
+
+.fileInfo p {
+  margin: 0;
+}
+
+.fileName {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.fileNameText {
+  font-weight: 600;
+}
+
+.fileSize {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.field .readOnlyInput {
+  background: transparent;
+  border-style: dashed;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fieldset legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+}
+
+.durationRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.radioGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.radio input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.radio input:focus-visible {
+  box-shadow: var(--focus-ring);
+  border-radius: 50%;
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+}
+
+.fieldError,
+.formError {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-danger);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* ---------- Utilidades ---------- */
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Móvil y tableta: área principal arriba, playlist debajo ---------- */
+
+@media (max-width: 767px) {
+  .panel {
+    border-right: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .page {
+    place-items: start center;
+  }
+
+  .shell {
+    height: auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'stage'
+      'playlist';
+    border-radius: var(--radius-lg);
+  }
+
+  .stage {
+    grid-template-rows: auto auto;
+    padding: var(--space-5) var(--space-4);
+    overflow: visible;
+  }
+
+  .stageColumn {
+    width: 100%;
+  }
+
+  /* En móvil, la esfera se ajusta al ancho disponible. */
+  .visualizerSlot {
+    width: min(100%, var(--visualizer-max-mobile));
+  }
+
+  .selected {
+    min-height: 0;
+  }
+
+  .panelHeader {
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+
+  .songList {
+    overflow: visible;
+  }
+
+  .songSelect {
+    padding-left: var(--space-4);
+  }
+
+  .dialogActions > button {
+    flex: 1;
+  }
+}
+
+/* Tableta: entre 768 px y 1023 px la playlist mantiene un ancho mínimo cómodo. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .stage {
+    padding: var(--space-5);
+  }
+}

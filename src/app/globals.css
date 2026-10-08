@@ -1,0 +1,112 @@
+/*
+ * Tokens de diseño: blanco cálido, tinta oscura y rojo carmín.
+ * La interfaz es clara en cualquier preferencia del sistema (docs/diseno-ui.md).
+ */
+:root {
+  color-scheme: light;
+
+  /* Color */
+  --color-page: #f6f3f0;
+  --color-shell-border: rgba(65, 36, 39, 0.12);
+  --color-sidebar: #fffdfb;
+  --color-sidebar-hover: #f5efed;
+  --color-selected: #fbe9e8;
+  --color-main: #fffdfb;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f3eeeb;
+  --color-input: #f6f2ef;
+  --color-line: rgba(65, 36, 39, 0.14);
+  --color-track: #d9ceca;
+  --color-text: #2b2023;
+  --color-text-muted: #65585c;
+  --color-text-subtle: #74686a;
+  --color-accent: #c62f3b;
+  --color-accent-strong: #aa2330;
+  --color-accent-muted: #d16b73;
+  --color-accent-soft: #fbe9e8;
+  --color-on-accent: #ffffff;
+  --color-danger: #b42332;
+  --color-on-danger: #ffffff;
+  --color-danger-soft: #fbe9e8;
+  --color-backdrop: rgba(43, 32, 35, 0.3);
+  --shadow-shell: 0 24px 64px -24px rgba(65, 36, 39, 0.16),
+    0 4px 16px -8px rgba(65, 36, 39, 0.08);
+  --shadow-dialog: 0 24px 60px -20px rgba(65, 36, 39, 0.22);
+
+  /* Espaciado */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --gutter: 1rem;
+
+  /* Radios */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-shell: 32px;
+  --radius-pill: 999px;
+
+  /* Tipografía */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Foco */
+  --focus-ring: 0 0 0 2px var(--color-sidebar), 0 0 0 4px var(--color-accent);
+
+  /* Medidas */
+  --sidebar-width: 28%;
+  --visualizer-max: 380px;
+  --visualizer-max-mobile: 340px;
+  --visualizer-min: 200px;
+  /*
+   * Tamaño de la esfera en escritorio: depende solo del alto del viewport
+   * (380 px a partir de ~860 px de alto, 320 px a 800, mínimo 200 px). Deja
+   * sitio a los detalles y a los controles. El título y el artista no lo cambian.
+   */
+  --visualizer-size: min(var(--visualizer-max), max(var(--visualizer-min), calc(100dvh - 30rem)));
+  /* Ancho de la columna centrada (esfera + detalles + controles). */
+  --stage-column-width: 380px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 1.5rem;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
